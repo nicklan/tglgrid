@@ -1,31 +1,63 @@
-#N canvas 962 70 956 1008 10;
-#X obj 56 328 tglgrid 16 16 000000000000x00x00000000000x000000000000xx00x0000000000000x000000000000x00000000000x00x00000000000000000x0x0000000000000x000000000x00x00000000000000000x00000000000x00x0000000000000x00xx000000000000x00x0000000000000x00x00000000000000x00x000000000000000x0000
+#N canvas 2 70 1916 1008 10;
+#X obj -101 319 tglgrid 16 16 000000000000x00x00000000000x000000000000xx00x0000000000000x000000000000x00000000000x00x00000000000000000x0x0000000000000x000000000x00x00000000000000000x00000000000x00x0000000000000x00xx000000000000x00x0000000000000x00x00000000000000x00x000000000000000x0000
 ;
-#X obj 403 251 count 16;
-#X obj 56 234 t b b;
-#X obj 56 166 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
-1;
-#X msg 403 223 reset;
-#X obj 56 696 unpack f f f f f f f f f f f f f f f f;
-#X obj 56 788 noteout 1;
-#X obj 56 200 metro 500;
-#X obj 56 755 makenote 64 500;
-#X obj 66 302 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
--258113 -1 15353 1;
-#X obj 496 252 loadbang;
-#X text 555 250 C minor pentatonic;
-#X text 517 371 C pentatonic;
-#X obj 495 361 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+#X obj 246 261 count 16;
+#X obj -101 244 t b b;
+#X obj -101 176 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1
+0 1;
+#X msg 246 233 reset;
+#X obj -101 715 unpack f f f f f f f f f f f f f f f f;
+#X obj -101 807 noteout 1;
+#X obj -101 210 metro 500;
+#X obj -101 774 makenote 64 500;
+#X obj -91 278 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
+-258113 -1 0 1;
+#X obj 354 500 loadbang;
+#X text 413 498 C minor pentatonic;
+#X text 376 605 C pentatonic;
+#X obj 354 595 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X obj 496 228 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+#X obj 354 476 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X msg 496 276 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
+#X msg 354 524 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
 60 63 65 67 70 72;
-#X msg 495 389 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
+#X msg 354 623 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
 60 62 64 67 69 72;
-#X obj 313 697 table _tglgrid_pitches;
-#X obj 56 726 tabread _tglgrid_pitches;
+#X obj 61 745 table _tglgrid_pitches;
+#X obj -101 745 tabread _tglgrid_pitches;
+#X text 434 445 Change the playing scale here;
+#X text 163 17 A tglgrid is a grid of cells that can each be toggled
+on and off. Bang the left input to output a list of the active cells
+in the currently active column. Send a column number to the right input
+to select the active column. Everything is 0-indexed. Arguments are
+cols \, rows and active cells \, see below right for argument example
+;
+#X obj 487 208 tglgrid 2 3 0x0x00;
+#X text 542 207 <- tglgrid 2 3 0x0x00;
+#X text 404 135 Arguments set # of columns \, # of rows \, and then
+active cells. The active cells string is a sequence of 0s for off cells
+and any other character for on cells (use a letter otherwise pd will
+think you're typing a number). The second character is the cell in
+the first column second row and so on.;
+#X text -267 301 A bang here triggers output for active column;
+#X text 273 314 Here you can select the active column (0-indexed).
+A value less than zero activates column 0 \, and a value greater than
+the number of columns \, the last column;
+#X text 255 313 <-;
+#X obj -230 744 print tglgrid-help;
+#X text -242 680 Output is a list of the selected cells in the active
+column. The bottom-most cell is 0;
+#X obj 353 690 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X text 375 700 A pentatonic;
+#X msg 353 718 \; _tglgrid_pitches 0 33 35 36 40 41 45 47 48 52 53
+57 59 60 64 65 69;
+#X text -238 125 Try connecting pd's midi to your favorite synth and
+then turning on the metro below. Then click some of the cells in the
+tglgrid. You can change the scale played by banging on of the pre-defined
+scales to the right.;
 #X connect 0 0 5 0;
+#X connect 0 0 27 0;
 #X connect 1 0 9 0;
 #X connect 1 0 0 1;
 #X connect 2 0 0 0;
@@ -55,3 +87,5 @@
 #X connect 13 0 16 0;
 #X connect 14 0 10 0;
 #X connect 18 0 8 0;
+#X connect 29 0 31 0;
+#X coords 0 10080 1 10070 85 60 0;

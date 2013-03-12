@@ -1,0 +1,57 @@
+#N canvas 962 70 956 1008 10;
+#X obj 56 328 tglgrid 16 16 000000000000x00x00000000000x000000000000xx00x0000000000000x000000000000x00000000000x00x00000000000000000x0x0000000000000x000000000x00x00000000000000000x00000000000x00x0000000000000x00xx000000000000x00x0000000000000x00x00000000000000x00x000000000000000x0000
+;
+#X obj 403 251 count 16;
+#X obj 56 234 t b b;
+#X obj 56 166 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X msg 403 223 reset;
+#X obj 56 696 unpack f f f f f f f f f f f f f f f f;
+#X obj 56 788 noteout 1;
+#X obj 56 200 metro 500;
+#X obj 56 755 makenote 64 500;
+#X obj 66 302 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
+-258113 -1 15353 1;
+#X obj 496 252 loadbang;
+#X text 555 250 C minor pentatonic;
+#X text 517 371 C pentatonic;
+#X obj 495 361 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 496 228 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 496 276 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
+60 63 65 67 70 72;
+#X msg 495 389 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
+60 62 64 67 69 72;
+#X obj 313 697 table _tglgrid_pitches;
+#X obj 56 726 tabread _tglgrid_pitches;
+#X connect 0 0 5 0;
+#X connect 1 0 9 0;
+#X connect 1 0 0 1;
+#X connect 2 0 0 0;
+#X connect 2 1 1 0;
+#X connect 3 0 7 0;
+#X connect 4 0 1 0;
+#X connect 5 0 18 0;
+#X connect 5 1 18 0;
+#X connect 5 2 18 0;
+#X connect 5 3 18 0;
+#X connect 5 4 18 0;
+#X connect 5 5 18 0;
+#X connect 5 6 18 0;
+#X connect 5 7 18 0;
+#X connect 5 8 18 0;
+#X connect 5 9 18 0;
+#X connect 5 10 18 0;
+#X connect 5 11 18 0;
+#X connect 5 12 18 0;
+#X connect 5 13 18 0;
+#X connect 5 14 18 0;
+#X connect 5 15 18 0;
+#X connect 7 0 2 0;
+#X connect 8 0 6 0;
+#X connect 8 1 6 1;
+#X connect 10 0 15 0;
+#X connect 13 0 16 0;
+#X connect 14 0 10 0;
+#X connect 18 0 8 0;

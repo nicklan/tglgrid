@@ -31,16 +31,16 @@ void tg_bang(t_tg* tg) {
   t_int outcol = tg->outputcol;
   if (outcol < 0) outcol = 0;
   if (outcol >= tg->cols) outcol = tg->cols-1;
-  coff = outcol*tg->cols;
+  coff = outcol*tg->rows;
 
   for (j=0,i = 0;i < tg->rows;i++)
-    if (tg->toggled[i+coff])
-      tg->outputvals[j++].a_w.w_float = (t_float)i;
+    if (tg->toggled[i+coff]!='0')
+      tg->outputvals[j++].a_w.w_float = (t_float)(tg->rows-i);
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }
 
-static void *tg_new(t_floatarg w, t_floatarg h) {
+static void *tg_new(t_floatarg w, t_floatarg h, t_symbol *toggled) {
   int i;
   t_tg *tg = (t_tg*)pd_new(tg_class);
   tg->cols  = (w>0)?w:16;
@@ -56,7 +56,17 @@ static void *tg_new(t_floatarg w, t_floatarg h) {
   for (i = 0;i<tg->rows;i++) tg->outputvals[i].a_type = A_FLOAT;
 
   tg->toggled = (char*)getbytes(sizeof(char)*tg->rows*tg->cols);
-  memset(tg->toggled,0,sizeof(char)*tg->rows*tg->cols);
+  if (toggled->s_name != NULL) {
+    int len = strlen(toggled->s_name);
+    if (len != 0 && len != (tg->rows*tg->cols)) {
+      error("tglgrid: invalid toggled state passed, defaulting to all un-toggeled");
+      len = 0;
+    }
+    if (len != 0)
+      strcpy(tg->toggled,toggled->s_name);
+    else
+      for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
+  } else for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
 
   tg->name = gensym("tglgrid");
   tg->glist = (t_glist *)canvas_getcurrent();
@@ -82,9 +92,15 @@ static int full_height(t_tg *tg) {
 }
 
 static inline char toggle(t_tg *tg, int col, int row) {
-  int coff = col*tg->cols;
-  tg->toggled[row+coff] = tg->toggled[row+coff]?0:1;
+  int coff = col*tg->rows;
+  // use 'x' since '1' will make pd think our saved binbuf is a number
+  tg->toggled[row+coff] = tg->toggled[row+coff]!='0'?'0':'x';
   return tg->toggled[row+coff];
+}
+
+static inline char toggle_val(t_tg *tg, int col, int row) {
+ int coff = col*tg->rows;
+ return tg->toggled[row+coff];
 }
 
 /* ******* *
@@ -103,8 +119,12 @@ static void draw_new(t_tg* tg, t_glist *glist) {
 
   for (r = 0;r < tg->rows;r++) {
     for (c = 0;c < tg->cols;c++) {
-      sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags %lxTGLSQ%d.%d\n",
-               canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
+      if (toggle_val(tg,c,r) != '0')
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #909090 -tags %lxTGLSQ%d.%d\n",
+                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
+      else
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags %lxTGLSQ%d.%d\n",
+                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
       curx += (tg->ssize+tg->spacing);
     }
     curx = text_xpix(&tg->x_obj, glist);
@@ -193,6 +213,14 @@ static void tglgrid_getrect(t_gobj *z, t_glist *owner,
    *yp2 = text_ypix(&tg->x_obj, tg->glist)+full_height(tg);
 }
 
+static void tglgrid_save(t_gobj *z, t_binbuf *b) {
+  t_tg *tg = (t_tg*)z;
+  binbuf_addv(b,"ssiisiis",gensym("#X"),gensym("obj"),
+              (t_int)tg->x_obj.te_xpix, (t_int)tg->x_obj.te_ypix,
+              tg->name,tg->cols,tg->rows,gensym(tg->toggled));
+  binbuf_addv(b,";");
+}
+
 static void tglgrid_vis(t_gobj *z, t_glist *glist, int vis) {
   t_tg *tg = (t_tg*)z;
   if (vis)
@@ -255,7 +283,7 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
   }
   if (doit && row>=0) {
     char tgld = toggle(tg,col,row);
-    if (tgld)
+    if (tgld!='0')
       sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
                canvas, tg, col, row);
     else
@@ -283,6 +311,7 @@ void tglgrid_setup(void) {
                        CLASS_DEFAULT,
                        A_DEFFLOAT,
                        A_DEFFLOAT,
+                       A_DEFSYMBOL,
                        0);
   class_addbang(tg_class, tg_bang);
 
@@ -294,13 +323,13 @@ void tglgrid_setup(void) {
   tglgrid_behavior.w_visfn =        tglgrid_vis;
   tglgrid_behavior.w_clickfn =      tglgrid_click;
 
-  /*#if PD_MINOR_VERSION >= 37
-  class_setpropertiesfn(tg_class, grid_properties);
-  class_setsavefn(tg_class, grid_save);
+#if PD_MINOR_VERSION >= 37
+  //class_setpropertiesfn(tg_class, grid_properties);
+  class_setsavefn(tg_class, tglgrid_save);
 #else
-  grid_widgetbehavior.w_propertiesfn = grid_properties;
-  grid_widgetbehavior.w_savefn =       grid_save;
-  #endif*/
+  //grid_widgetbehavior.w_propertiesfn = grid_properties;
+  grid_widgetbehavior.w_savefn =    tlggrid_save;
+#endif
 
   class_setwidget(tg_class, &tglgrid_behavior);
 }

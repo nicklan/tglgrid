@@ -1,3 +1,4 @@
+# You should modify these to suit your environment
 CC=gcc
 CFLAGS=-I/usr/include/pdextended -fPIC # -g
 

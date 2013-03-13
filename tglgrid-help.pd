@@ -56,6 +56,16 @@ active cells. The active cells string is a sequence of 0s for off cells
 and any other character for on cells (use a letter otherwise pd will
 think you're typing a number). The second character is the cell in
 the first column second row and so on. The default is 16x16;
+#N canvas 2 70 1916 1008 META 0;
+#X text 12 125 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
+Wilkes for Pd version 0.42.;
+#X text 12 25 LICENSE GPL v3;
+#X text 12 105 AUTHOR Nick Lanham;
+#X text 12 5 KEYWORDS control grid toggle;
+#X text 12 45 DESCRIPTION a grid of toggable cells;
+#X text 12 65 INLET_0 bang - output active column;
+#X text 12 85 INLET_1 int - select active column;
+#X restore 683 396 pd META;
 #X connect 0 0 5 0;
 #X connect 0 0 26 0;
 #X connect 1 0 9 0;

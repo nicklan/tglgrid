@@ -26,3 +26,13 @@ m_pd.h
 3. Either copy tglgrid.pd_[arch] and tglgrid-help.pd to a directory in
 your pd search path, or add the tglgrid directory to your search
 path.
+
+Coming (Hopefully) Soon(ish)
+----------------------------
+- Properties dialog to set behavior and some apperance options (color,
+spacing, cell size...)
+- Support messages on first inlet to turn on/off particular cells, and
+query cell state
+- Click and drag should keep toggling as new cells are moused over
+- Fix bug where a cell stays red when the mouse leaves the object too
+quickly

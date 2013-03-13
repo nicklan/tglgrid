@@ -19,6 +19,8 @@
 #include "g_canvas.h"
 #include <string.h>
 
+#define UNUSED(x) (void)(x)
+
 static t_class *tg_class;
 t_widgetbehavior tglgrid_behavior;
 
@@ -43,7 +45,6 @@ typedef struct tg {
 } t_tg;
 
 void tg_bang(t_tg* tg) {
-  char buf[16];
   int i,j,coff;
   t_int outcol = tg->outputcol;
   if (outcol < 0) outcol = 0;
@@ -224,10 +225,10 @@ static void draw_move(t_tg *tg, t_glist *glist) {
 static void tglgrid_getrect(t_gobj *z, t_glist *owner,
                             int *xp1, int *yp1, int *xp2, int *yp2) {
    t_tg *tg = (t_tg*)z;
-   *xp1 = text_xpix(&tg->x_obj, tg->glist);
-   *yp1 = text_ypix(&tg->x_obj, tg->glist);
-   *xp2 = text_xpix(&tg->x_obj, tg->glist)+full_width(tg);
-   *yp2 = text_ypix(&tg->x_obj, tg->glist)+full_height(tg);
+   *xp1 = text_xpix(&tg->x_obj, owner);
+   *yp1 = text_ypix(&tg->x_obj, owner);
+   *xp2 = text_xpix(&tg->x_obj, owner)+full_width(tg);
+   *yp2 = text_ypix(&tg->x_obj, owner)+full_height(tg);
 }
 
 static void tglgrid_save(t_gobj *z, t_binbuf *b) {
@@ -283,10 +284,16 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
 }
 
 static int tglgrid_click(t_gobj *z, struct _glist *glist,
-                         int xpix, int ypix, int shift, int alt, int dbl, int doit) {
+                         int xpix, int ypix, int shift,
+                         int alt, int dbl, int doit) {
   t_tg* tg = (t_tg *)z;
   t_canvas *canvas = glist_getcanvas(glist);
   int row,col;
+
+  UNUSED(shift);
+  UNUSED(alt);
+  UNUSED(dbl);
+
   col_and_row(tg,glist,xpix,ypix,&col,&row);
   if (row != tg->last_row || col != tg->last_col) {
     if (row >= 0)

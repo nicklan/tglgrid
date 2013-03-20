@@ -286,6 +286,19 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
   *row = rely / fss;
 }
 
+static void handle_highlight(t_tg* tg, int row, int col, t_canvas *canvas) {
+  if (row != tg->last_row || col != tg->last_col) {
+    if (row >= 0)
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000\n",
+               canvas, tg, col, row);
+    if (tg->last_row >= 0)
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #000000\n",
+               canvas, tg, tg->last_col, tg->last_row);
+    tg->last_col = col;
+    tg->last_row = row;
+  }
+}
+
 static char mouse_toggle(t_tg* tg, int row, int col, t_canvas *canvas) {
   char tgld = toggle(tg,col,row);
   if (tgld!='0')
@@ -302,6 +315,7 @@ static void tglgrid_motion(t_tg* tg, t_floatarg dx, t_floatarg dy) {
   tg->mouse_x += dx;
   tg->mouse_y += dy;
   col_and_row(tg,tg->glist,tg->mouse_x,tg->mouse_y,&col,&row);
+  handle_highlight(tg,row,col,tg->mouse_canvas);
   if (col < tg->cols && row < tg->rows &&
       col >= 0 && row >= 0 &&
       (col != tg->tgld_col || row != tg->tgld_row) &&
@@ -324,16 +338,7 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
   UNUSED(dbl);
 
   col_and_row(tg,glist,xpix,ypix,&col,&row);
-  if (row != tg->last_row || col != tg->last_col) {
-    if (row >= 0)
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000\n",
-               canvas, tg, col, row);
-    if (tg->last_row >= 0)
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #000000\n",
-               canvas, tg, tg->last_col, tg->last_row);
-    tg->last_col = col;
-    tg->last_row = row;
-  }
+  handle_highlight(tg,row,col,canvas);
   if (doit && row>=0) {
     tg->mouse_tgld = mouse_toggle(tg,row,col,canvas);
     tg->tgld_col = col;

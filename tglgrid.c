@@ -34,6 +34,9 @@ typedef struct tg {
 
   t_int last_col;
   t_int last_row;
+  t_int mouse_x, mouse_y,tgld_col,tgld_row;
+  char  mouse_tgld;
+  t_canvas *mouse_canvas;
 
   t_float outputcol;
   t_atom *outputvals;
@@ -283,6 +286,32 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
   *row = rely / fss;
 }
 
+static char mouse_toggle(t_tg* tg, int row, int col, t_canvas *canvas) {
+  char tgld = toggle(tg,col,row);
+  if (tgld!='0')
+    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
+             canvas, tg, col, row);
+  else
+    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #FFFFFF\n",
+             canvas, tg, col, row);
+  return tgld;
+}
+
+static void tglgrid_motion(t_tg* tg, t_floatarg dx, t_floatarg dy) {
+  int row,col;
+  tg->mouse_x += dx;
+  tg->mouse_y += dy;
+  col_and_row(tg,tg->glist,tg->mouse_x,tg->mouse_y,&col,&row);
+  if (col < tg->cols && row < tg->rows &&
+      col >= 0 && row >= 0 &&
+      (col != tg->tgld_col || row != tg->tgld_row) &&
+      (toggle_val(tg,col,row) != tg->mouse_tgld) ) {
+    mouse_toggle(tg,row,col,tg->mouse_canvas);
+    tg->tgld_col = col;
+    tg->tgld_row = row;
+  }
+}
+
 static int tglgrid_click(t_gobj *z, struct _glist *glist,
                          int xpix, int ypix, int shift,
                          int alt, int dbl, int doit) {
@@ -306,13 +335,14 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
     tg->last_row = row;
   }
   if (doit && row>=0) {
-    char tgld = toggle(tg,col,row);
-    if (tgld!='0')
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
-               canvas, tg, col, row);
-    else
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #FFFFFF\n",
-               canvas, tg, col, row);
+    tg->mouse_tgld = mouse_toggle(tg,row,col,canvas);
+    tg->tgld_col = col;
+    tg->tgld_row = row;
+    tg->mouse_canvas = canvas;
+    tg->mouse_x = xpix;
+    tg->mouse_y = ypix;
+    glist_grab(glist,&tg->x_obj.te_g,
+               (t_glistmotionfn)tglgrid_motion,0,xpix,ypix);
   }
   return 1;
 }

@@ -32,8 +32,6 @@ typedef struct tg {
   t_int ssize;
   t_int spacing;
 
-  t_int last_col;
-  t_int last_row;
   t_int mouse_x, mouse_y,tgld_col,tgld_row;
   char  mouse_tgld;
   t_canvas *mouse_canvas;
@@ -60,15 +58,12 @@ void tg_bang(t_tg* tg) {
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }
-
 static void *tg_new(t_floatarg w, t_floatarg h, t_symbol *toggled) {
   int i;
   t_tg *tg = (t_tg*)pd_new(tg_class);
   tg->cols  = (w>0)?w:16;
   tg->rows = (h>0)?h:16;
 
-  tg->last_col = -1;
-  tg->last_row = -1;
   tg->outputcol = -1;
   tg->ssize = 20;
   tg->spacing = 2;
@@ -144,8 +139,14 @@ static void draw_new(t_tg* tg, t_glist *glist) {
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #909090 -tags %lxTGLSQ%d.%d\n",
                  canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
       else
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags %lxTGLSQ%d.%d\n",
-                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill [.x%lx.c cget -background] -tags %lxTGLSQ%d.%d\n",
+                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, canvas, tg, c, r);
+
+      //set up highlighting
+      sys_vgui(".x%lx.c bind %lxTGLSQ%d.%d <Enter> {.x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000}\n",
+               canvas,tg,c,r,canvas,tg,c,r);
+      sys_vgui(".x%lx.c bind %lxTGLSQ%d.%d <Leave> {.x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #000000}\n",
+               canvas,tg,c,r,canvas,tg,c,r);
       curx += (tg->ssize+tg->spacing);
     }
     curx = text_xpix(&tg->x_obj, glist);
@@ -155,7 +156,7 @@ static void draw_new(t_tg* tg, t_glist *glist) {
   curx = text_xpix(&tg->x_obj, glist)-tg->spacing;
   cury = text_ypix(&tg->x_obj, glist)-tg->spacing;
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags %lxTGLBOUND\n",
-           canvas, curx, cury, curx + w, cury + h, tg);
+           canvas, curx, cury, curx + w, cury + h, tg, canvas);
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLIN1\n",
            canvas, curx, cury, curx + IOWIDTH, cury + 4, tg);
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLIN2\n",
@@ -286,27 +287,14 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
   *row = rely / fss;
 }
 
-static void handle_highlight(t_tg* tg, int row, int col, t_canvas *canvas) {
-  if (row != tg->last_row || col != tg->last_col) {
-    if (row >= 0)
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000\n",
-               canvas, tg, col, row);
-    if (tg->last_row >= 0)
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #000000\n",
-               canvas, tg, tg->last_col, tg->last_row);
-    tg->last_col = col;
-    tg->last_row = row;
-  }
-}
-
 static char mouse_toggle(t_tg* tg, int row, int col, t_canvas *canvas) {
   char tgld = toggle(tg,col,row);
   if (tgld!='0')
     sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
              canvas, tg, col, row);
   else
-    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #FFFFFF\n",
-             canvas, tg, col, row);
+    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
+             canvas, tg, col, row, canvas);
   return tgld;
 }
 
@@ -315,7 +303,6 @@ static void tglgrid_motion(t_tg* tg, t_floatarg dx, t_floatarg dy) {
   tg->mouse_x += dx;
   tg->mouse_y += dy;
   col_and_row(tg,tg->glist,tg->mouse_x,tg->mouse_y,&col,&row);
-  handle_highlight(tg,row,col,tg->mouse_canvas);
   if (col < tg->cols && row < tg->rows &&
       col >= 0 && row >= 0 &&
       (col != tg->tgld_col || row != tg->tgld_row) &&
@@ -338,7 +325,6 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
   UNUSED(dbl);
 
   col_and_row(tg,glist,xpix,ypix,&col,&row);
-  handle_highlight(tg,row,col,canvas);
   if (doit && row>=0) {
     tg->mouse_tgld = mouse_toggle(tg,row,col,canvas);
     tg->tgld_col = col;

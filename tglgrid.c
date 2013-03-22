@@ -34,7 +34,7 @@ typedef struct tg {
 
   t_int mouse_x, mouse_y,tgld_col,tgld_row;
   char  mouse_tgld;
-  t_canvas *mouse_canvas;
+  t_canvas *canvas;
 
   t_float outputcol;
   t_atom *outputvals;
@@ -44,6 +44,30 @@ typedef struct tg {
   t_symbol *name;
   t_glist *glist;
 } t_tg;
+
+static inline char toggle(t_tg *tg, int col, int row) {
+  int coff = col*tg->rows;
+  // use 'x' since '1' will make pd think our saved binbuf is a number
+  tg->toggled[row+coff] = tg->toggled[row+coff]!='0'?'0':'x';
+  return tg->toggled[row+coff];
+}
+
+static inline char toggle_val(t_tg *tg, int col, int row) {
+ int coff = col*tg->rows;
+ return tg->toggled[row+coff];
+}
+
+static char do_toggle(t_tg* tg, int row, int col) {
+  char tgld = toggle(tg,col,row);
+  if (tgld!='0')
+    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
+             tg->canvas, tg, col, row);
+  else
+    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
+             tg->canvas, tg, col, row, tg->canvas);
+  return tgld;
+}
+
 
 void tg_bang(t_tg* tg) {
   int i,j,coff;
@@ -58,6 +82,27 @@ void tg_bang(t_tg* tg) {
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }
+
+void tg_tgl(t_tg* tg, t_floatarg cf, t_floatarg rf) {
+  t_int c = (int)cf;
+  t_int r = (int)rf;
+  do_toggle(tg,r,c);
+}
+
+void tg_on(t_tg* tg, t_floatarg cf, t_floatarg rf) {
+  t_int c = (int)cf;
+  t_int r = (int)rf;
+  if (toggle_val(tg,c,r)=='0')
+    do_toggle(tg,r,c);
+}
+
+void tg_off(t_tg* tg, t_floatarg cf, t_floatarg rf) {
+  t_int c = (int)cf;
+  t_int r = (int)rf;
+  if (toggle_val(tg,c,r)!='0')
+    do_toggle(tg,r,c);
+}
+
 static void *tg_new(t_floatarg w, t_floatarg h, t_symbol *toggled) {
   int i;
   t_tg *tg = (t_tg*)pd_new(tg_class);
@@ -107,17 +152,6 @@ static int full_height(t_tg *tg) {
   return ((tg->ssize+tg->spacing)*tg->rows)+tg->spacing;
 }
 
-static inline char toggle(t_tg *tg, int col, int row) {
-  int coff = col*tg->rows;
-  // use 'x' since '1' will make pd think our saved binbuf is a number
-  tg->toggled[row+coff] = tg->toggled[row+coff]!='0'?'0':'x';
-  return tg->toggled[row+coff];
-}
-
-static inline char toggle_val(t_tg *tg, int col, int row) {
- int coff = col*tg->rows;
- return tg->toggled[row+coff];
-}
 
 /* ******* *
  * Drawing *
@@ -129,6 +163,8 @@ static void draw_new(t_tg* tg, t_glist *glist) {
   int curx,cury;
   int w = full_width(tg);
   int h = full_height(tg);
+
+  tg->canvas = canvas;
 
   curx = text_xpix(&tg->x_obj, glist);
   cury = text_ypix(&tg->x_obj, glist);
@@ -287,17 +323,6 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
   *row = rely / fss;
 }
 
-static char mouse_toggle(t_tg* tg, int row, int col, t_canvas *canvas) {
-  char tgld = toggle(tg,col,row);
-  if (tgld!='0')
-    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
-             canvas, tg, col, row);
-  else
-    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
-             canvas, tg, col, row, canvas);
-  return tgld;
-}
-
 static void tglgrid_motion(t_tg* tg, t_floatarg dx, t_floatarg dy) {
   int row,col;
   tg->mouse_x += dx;
@@ -307,7 +332,7 @@ static void tglgrid_motion(t_tg* tg, t_floatarg dx, t_floatarg dy) {
       col >= 0 && row >= 0 &&
       (col != tg->tgld_col || row != tg->tgld_row) &&
       (toggle_val(tg,col,row) != tg->mouse_tgld) ) {
-    mouse_toggle(tg,row,col,tg->mouse_canvas);
+    do_toggle(tg,row,col);
     tg->tgld_col = col;
     tg->tgld_row = row;
   }
@@ -317,7 +342,6 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
                          int xpix, int ypix, int shift,
                          int alt, int dbl, int doit) {
   t_tg* tg = (t_tg *)z;
-  t_canvas *canvas = glist_getcanvas(glist);
   int row,col;
 
   UNUSED(shift);
@@ -326,10 +350,9 @@ static int tglgrid_click(t_gobj *z, struct _glist *glist,
 
   col_and_row(tg,glist,xpix,ypix,&col,&row);
   if (doit && row>=0) {
-    tg->mouse_tgld = mouse_toggle(tg,row,col,canvas);
+    tg->mouse_tgld = do_toggle(tg,row,col);
     tg->tgld_col = col;
     tg->tgld_row = row;
-    tg->mouse_canvas = canvas;
     tg->mouse_x = xpix;
     tg->mouse_y = ypix;
     glist_grab(glist,&tg->x_obj.te_g,
@@ -359,6 +382,15 @@ void tglgrid_setup(void) {
                        A_DEFSYMBOL,
                        0);
   class_addbang(tg_class, tg_bang);
+  class_addmethod(tg_class,
+                  (t_method)tg_tgl,gensym("tgl"),
+                  A_FLOAT,A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_on,gensym("on"),
+                  A_FLOAT,A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_off,gensym("off"),
+                  A_FLOAT,A_FLOAT,0);
 
   tglgrid_behavior.w_getrectfn =    tglgrid_getrect;
   tglgrid_behavior.w_displacefn =   tglgrid_displace;

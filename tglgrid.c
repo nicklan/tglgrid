@@ -58,14 +58,18 @@ static inline char toggle_val(t_tg *tg, int col, int row) {
 }
 
 static char do_toggle(t_tg* tg, int row, int col) {
-  char tgld = toggle(tg,col,row);
-  if (tgld!='0')
-    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
-             tg->canvas, tg, col, row);
-  else
-    sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
-             tg->canvas, tg, col, row, tg->canvas);
-  return tgld;
+  if (row >= 0 && col >= 0 && row < tg->rows && col < tg->cols) {
+    char tgld = toggle(tg,col,row);
+    if (tgld!='0')
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
+               tg->canvas, tg, col, row);
+    else
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
+               tg->canvas, tg, col, row, tg->canvas);
+    return tgld;
+  }
+  error("tglgrid: Request to toggle nonexistent cell: %d,%d",col,row);
+  return '0';
 }
 
 

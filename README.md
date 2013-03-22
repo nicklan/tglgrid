@@ -33,6 +33,4 @@ Coming (Hopefully) Soon(ish)
 spacing, cell size...)
 - Support messages on first inlet to turn on/off particular cells, and
 query cell state
-- Fix bug where a cell stays red when the mouse leaves the object too
-quickly
 - Toggle -> hold down shift -> click should fill intervening cells

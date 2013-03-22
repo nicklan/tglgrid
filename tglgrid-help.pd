@@ -51,7 +51,7 @@ column. The bottom-most cell is 0;
 then turning on the metro below. Then click some of the cells in the
 tglgrid. You can change the scale played by banging on of the pre-defined
 scales to the right.;
-#X text 407 109 Arguments set # of columns \, # of rows \, and then
+#X text 491 123 Arguments set # of columns \, # of rows \, and then
 active cells. The active cells string is a sequence of 0s for off cells
 and any other character for on cells (use a letter otherwise pd will
 think you're typing a number). The second character is the cell in
@@ -66,6 +66,10 @@ Wilkes for Pd version 0.42.;
 #X text 12 65 INLET_0 bang - output active column;
 #X text 12 85 INLET_1 int - select active column;
 #X restore 683 396 pd META;
+#X msg 365 163 tgl 1 2;
+#X msg 365 226 off 1 2;
+#X msg 366 192 on 1 2;
+#X text 238 142 Messages can toggle cells too;
 #X connect 0 0 5 0;
 #X connect 0 0 26 0;
 #X connect 1 0 9 0;
@@ -98,4 +102,7 @@ Wilkes for Pd version 0.42.;
 #X connect 14 0 10 0;
 #X connect 18 0 8 0;
 #X connect 28 0 30 0;
+#X connect 34 0 21 0;
+#X connect 35 0 21 0;
+#X connect 36 0 21 0;
 #X coords 0 10080 1 10070 85 60 0;

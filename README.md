@@ -9,6 +9,9 @@ You can bang the left input to output a list of the active cells in
 the currently active column and send a column number to the right input
 to select the active column.
 
+Cells can also be toggled and/or turned on/off by sending messages:
+"tgl col row", "on col row", or "off col row".
+
 Right now this has only been tested on linux.  I would appreciate any
 reports about success and/or failure of running this in other
 environments.
@@ -31,6 +34,4 @@ Coming (Hopefully) Soon(ish)
 ----------------------------
 - Properties dialog to set behavior and some apperance options (color,
 spacing, cell size...)
-- Support messages on first inlet to turn on/off particular cells, and
-query cell state
 - Toggle -> hold down shift -> click should fill intervening cells

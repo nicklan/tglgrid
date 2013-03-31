@@ -17,12 +17,16 @@
 
 #include "m_pd.h"
 #include "g_canvas.h"
+#include "g_all_guis.h"
 #include <string.h>
+
+#include "prefs_tcl.h"
 
 #define UNUSED(x) (void)(x)
 
 static t_class *tg_class;
 t_widgetbehavior tglgrid_behavior;
+
 
 typedef struct tg {
   t_object x_obj;
@@ -31,6 +35,9 @@ typedef struct tg {
   t_int rows;
   t_int ssize;
   t_int spacing;
+
+  char tglfill[8];
+  char untglfill[8];
 
   t_int mouse_x, mouse_y,tgld_col,tgld_row;
   char  mouse_tgld;
@@ -61,11 +68,11 @@ static char do_toggle(t_tg* tg, int row, int col) {
   if (row >= 0 && col >= 0 && row < tg->rows && col < tg->cols) {
     char tgld = toggle(tg,col,row);
     if (tgld!='0')
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill #909090\n",
-               tg->canvas, tg, col, row);
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill %s\n",
+               tg->canvas, tg, col, row, tg->tglfill);
     else
-      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill [.x%lx.c cget -background]\n",
-               tg->canvas, tg, col, row, tg->canvas);
+      sys_vgui(".x%lx.c itemconfigure %lxTGLSQ%d.%d -fill %s\n",
+               tg->canvas, tg, col, row, tg->untglfill);
     return tgld;
   }
   error("tglgrid: Request to toggle nonexistent cell: %d,%d",col,row);
@@ -116,6 +123,8 @@ static void *tg_new(t_floatarg w, t_floatarg h, t_symbol *toggled) {
   tg->outputcol = -1;
   tg->ssize = 20;
   tg->spacing = 2;
+  sprintf(tg->tglfill,"#909090");
+  sprintf(tg->untglfill,"#FFFFFF");
 
   tg->outputvals = (t_atom *)getbytes(sizeof(t_atom) * tg->rows);
   for (i = 0;i<tg->rows;i++) tg->outputvals[i].a_type = A_FLOAT;
@@ -176,11 +185,12 @@ static void draw_new(t_tg* tg, t_glist *glist) {
   for (r = 0;r < tg->rows;r++) {
     for (c = 0;c < tg->cols;c++) {
       if (toggle_val(tg,c,r) != '0')
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #909090 -tags %lxTGLSQ%d.%d\n",
-                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg, c, r);
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill %s -tags %lxTGLSQ%d.%d\n",
+                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg->tglfill, tg, c, r);
       else
-        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill [.x%lx.c cget -background] -tags %lxTGLSQ%d.%d\n",
-                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, canvas, tg, c, r);
+        //sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill [.x%lx.c cget -background] -tags %lxTGLSQ%d.%d\n",
+        sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill %s -tags %lxTGLSQ%d.%d\n",
+                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg->untglfill, tg, c, r);
 
       //set up highlighting
       sys_vgui(".x%lx.c bind %lxTGLSQ%d.%d <Enter> {.x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000}\n",
@@ -375,7 +385,26 @@ static void tglgrid_displace(t_gobj *z, t_glist *glist, int dx, int dy) {
     draw_move(tg, tg->glist);
 }
 
+static void tglgrid_properties(t_gobj *z, t_glist *owner) {
+  t_tg *tg = (t_tg *)z;
+  char buf[800];
+
+  UNUSED(owner);
+
+  sprintf(buf, "tglgrid_dialog %%s %s %d %d %d %d %s %s #FFFFFF\n",
+          tg->name->s_name,
+          (int)tg->cols, (int)tg->rows, (int)tg->ssize, (int)tg->spacing,
+          tg->tglfill, tg->untglfill);
+
+  gfxstub_new(&tg->x_obj.ob_pd, tg, buf);
+}
+
+static void tglgrid_dialog(t_tg *x, t_symbol *s, int argc, t_atom *argv) {
+  post("Called back");
+}
+
 void tglgrid_setup(void) {
+  sys_gui(prefs_tcl);
   tg_class = class_new(gensym("tglgrid"),
                        (t_newmethod)tg_new,
                        (t_method)tg_free,
@@ -395,6 +424,9 @@ void tglgrid_setup(void) {
   class_addmethod(tg_class,
                   (t_method)tg_off,gensym("off"),
                   A_FLOAT,A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tglgrid_dialog,gensym("dialog"),
+                  A_GIMME, 0);
 
   tglgrid_behavior.w_getrectfn =    tglgrid_getrect;
   tglgrid_behavior.w_displacefn =   tglgrid_displace;
@@ -405,10 +437,10 @@ void tglgrid_setup(void) {
   tglgrid_behavior.w_clickfn =      tglgrid_click;
 
 #if PD_MINOR_VERSION >= 37
-  //class_setpropertiesfn(tg_class, grid_properties);
+  class_setpropertiesfn(tg_class, tglgrid_properties);
   class_setsavefn(tg_class, tglgrid_save);
 #else
-  //grid_widgetbehavior.w_propertiesfn = grid_properties;
+  grid_widgetbehavior.w_propertiesfn = tglgrid_properties;
   grid_widgetbehavior.w_savefn =    tlggrid_save;
 #endif
 

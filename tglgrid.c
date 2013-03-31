@@ -399,8 +399,51 @@ static void tglgrid_properties(t_gobj *z, t_glist *owner) {
   gfxstub_new(&tg->x_obj.ob_pd, tg, buf);
 }
 
-static void tglgrid_dialog(t_tg *x, t_symbol *s, int argc, t_atom *argv) {
-  post("Called back");
+static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
+  UNUSED(s);
+  if (!tg)
+    error("tglgrid: tried to set properties on a non-existant grid");
+  else if (argc != 6)
+    error("tglgrid: invalid number of arguments passed to tglgrid_dialog.  (Expected 6, got %d)",
+          argc);
+  else if (argv[0].a_type != A_FLOAT ||
+           argv[1].a_type != A_FLOAT ||
+           argv[2].a_type != A_FLOAT ||
+           argv[3].a_type != A_FLOAT ||
+           argv[4].a_type != A_SYMBOL ||
+           argv[5].a_type != A_SYMBOL)
+    error("tglgrid: invalid parameter types passed to tglgrid_dialog");
+  else {
+    int i;
+    t_int newcols = (t_int)argv[0].a_w.w_float;
+    t_int newrows = (t_int)argv[1].a_w.w_float;
+    tg->ssize = (t_int)argv[2].a_w.w_float;
+    tg->spacing = (t_int)argv[3].a_w.w_float;
+    snprintf(tg->tglfill,8,argv[4].a_w.w_symbol->s_name);
+    snprintf(tg->untglfill,8,argv[5].a_w.w_symbol->s_name);
+
+    // need to erase before we change # of rows/cols
+    // so we erase the old size
+    draw_erase(tg,tg->glist);
+
+    if (newcols != tg->cols ||
+        newrows != tg->rows) {
+      if (newrows != tg->rows) {
+        tg->outputvals = (t_atom*)resizebytes(tg->outputvals,
+                                              sizeof(t_atom)*tg->rows,
+                                              sizeof(t_atom)*newrows);
+        for(i = tg->rows;i < newrows;i++) tg->outputvals[i].a_type = A_FLOAT;
+      }
+      tg->toggled = (char*)resizebytes(tg->toggled,
+                                       sizeof(char)*tg->rows*tg->cols,
+                                       sizeof(char)*newrows*newcols);
+      for (i = (tg->rows*tg->cols);i<(newrows*newcols);i++) tg->toggled[i]='0';
+      tg->cols = newcols;
+      tg->rows = newrows;
+    }
+
+    draw_new(tg,tg->glist);
+  }
 }
 
 void tglgrid_setup(void) {

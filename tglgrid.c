@@ -114,30 +114,62 @@ void tg_off(t_tg* tg, t_floatarg cf, t_floatarg rf) {
     do_toggle(tg,r,c);
 }
 
-static void *tg_new(t_floatarg w, t_floatarg h, t_symbol *toggled) {
-  int i;
+static int check_arg(t_atom *arg, t_atomtype target, int idx) {
+  if (arg->a_type != target) {
+    error("tglgrid: invalid type passed for argument %d (is %d, want %d)",idx,arg->a_type,target);
+    return 1;
+  }
+  return 0;
+}
+
+static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
+  int i,tocheck;
   t_tg *tg = (t_tg*)pd_new(tg_class);
-  tg->cols  = (w>0)?w:16;
-  tg->rows = (h>0)?h:16;
+
+  UNUSED(s);
+  if (argc > 7) {
+    post("tglgrid: warning, too many arguments passed to tglgrid, ignoring some");
+    argc = 7;
+  }
+
+  tocheck = argc;
+  while (tocheck > 0) {
+    t_atomtype target =
+      tocheck==1?A_FLOAT: // cols
+      tocheck==2?A_FLOAT: // rows
+      tocheck==3?A_SYMBOL: // toggled
+      tocheck==4?A_FLOAT: // cell_size
+      tocheck==5?A_FLOAT: // spacing
+      tocheck==6?A_SYMBOL: // toggled fill
+      A_SYMBOL; // untoggled fill
+    if (check_arg(argv+tocheck-1,target,tocheck))
+      return NULL;
+    tocheck--;
+  }
+
+  tg->cols =  (argc>0)?(t_int)argv[0].a_w.w_float:16;
+  tg->rows =  (argc>1)?(t_int)argv[1].a_w.w_float:16;
+  tg->ssize = (argc>3)?(t_int)argv[3].a_w.w_float:20;
+  tg->spacing = (argc>4)?(t_int)argv[4].a_w.w_float:2;
+
+  if (argc > 5) snprintf(tg->tglfill,8,argv[5].a_w.w_symbol->s_name);
+  else          sprintf(tg->tglfill,"#909090");
+  if (argc > 6) snprintf(tg->untglfill,8,argv[6].a_w.w_symbol->s_name);
+  else          sprintf(tg->untglfill,"#FFFFFF");
 
   tg->outputcol = -1;
-  tg->ssize = 20;
-  tg->spacing = 2;
-  sprintf(tg->tglfill,"#909090");
-  sprintf(tg->untglfill,"#FFFFFF");
-
   tg->outputvals = (t_atom *)getbytes(sizeof(t_atom) * tg->rows);
   for (i = 0;i<tg->rows;i++) tg->outputvals[i].a_type = A_FLOAT;
 
   tg->toggled = (char*)getbytes(sizeof(char)*tg->rows*tg->cols);
-  if (toggled->s_name != NULL) {
-    int len = strlen(toggled->s_name);
+  if (argc > 2) {
+    int len = strlen(argv[2].a_w.w_symbol->s_name);
     if (len != 0 && len != (tg->rows*tg->cols)) {
       error("tglgrid: invalid toggled state passed, defaulting to all un-toggeled");
       len = 0;
     }
     if (len != 0)
-      strcpy(tg->toggled,toggled->s_name);
+      strcpy(tg->toggled,argv[2].a_w.w_symbol->s_name);
     else
       for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
   } else for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
@@ -468,9 +500,7 @@ void tglgrid_setup(void) {
                        (t_method)tg_free,
                        sizeof(t_tg),
                        CLASS_DEFAULT,
-                       A_DEFFLOAT,
-                       A_DEFFLOAT,
-                       A_DEFSYMBOL,
+                       A_GIMME,
                        0);
   class_addbang(tg_class, tg_bang);
   class_addmethod(tg_class,

@@ -33,7 +33,7 @@ typedef struct tg {
 
   t_int cols;
   t_int rows;
-  t_int ssize;
+  t_int cell_size;
   t_int spacing;
 
   char tglfill[8];
@@ -149,7 +149,7 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
 
   tg->cols =  (argc>0)?(t_int)argv[0].a_w.w_float:16;
   tg->rows =  (argc>1)?(t_int)argv[1].a_w.w_float:16;
-  tg->ssize = (argc>3)?(t_int)argv[3].a_w.w_float:20;
+  tg->cell_size = (argc>3)?(t_int)argv[3].a_w.w_float:20;
   tg->spacing = (argc>4)?(t_int)argv[4].a_w.w_float:2;
 
   if (argc > 5) snprintf(tg->tglfill,8,argv[5].a_w.w_symbol->s_name);
@@ -190,11 +190,11 @@ static void tg_free(t_tg *tg) {
 
 
 static int full_width(t_tg *tg) {
-  return ((tg->ssize+tg->spacing)*tg->cols)+tg->spacing;
+  return ((tg->cell_size+tg->spacing)*tg->cols)+tg->spacing;
 }
 
 static int full_height(t_tg *tg) {
-  return ((tg->ssize+tg->spacing)*tg->rows)+tg->spacing;
+  return ((tg->cell_size+tg->spacing)*tg->rows)+tg->spacing;
 }
 
 
@@ -218,21 +218,21 @@ static void draw_new(t_tg* tg, t_glist *glist) {
     for (c = 0;c < tg->cols;c++) {
       if (toggle_val(tg,c,r) != '0')
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill %s -tags %lxTGLSQ%d.%d\n",
-                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg->tglfill, tg, c, r);
+                 canvas, curx, cury, curx + tg->cell_size, cury + tg->cell_size, tg->tglfill, tg, c, r);
       else
         //sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill [.x%lx.c cget -background] -tags %lxTGLSQ%d.%d\n",
         sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill %s -tags %lxTGLSQ%d.%d\n",
-                 canvas, curx, cury, curx + tg->ssize, cury + tg->ssize, tg->untglfill, tg, c, r);
+                 canvas, curx, cury, curx + tg->cell_size, cury + tg->cell_size, tg->untglfill, tg, c, r);
 
       //set up highlighting
       sys_vgui(".x%lx.c bind %lxTGLSQ%d.%d <Enter> {.x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #FF0000}\n",
                canvas,tg,c,r,canvas,tg,c,r);
       sys_vgui(".x%lx.c bind %lxTGLSQ%d.%d <Leave> {.x%lx.c itemconfigure %lxTGLSQ%d.%d -outline #000000}\n",
                canvas,tg,c,r,canvas,tg,c,r);
-      curx += (tg->ssize+tg->spacing);
+      curx += (tg->cell_size+tg->spacing);
     }
     curx = text_xpix(&tg->x_obj, glist);
-    cury += (tg->ssize+tg->spacing);
+    cury += (tg->cell_size+tg->spacing);
   }
 
   curx = text_xpix(&tg->x_obj, glist)-tg->spacing;
@@ -284,11 +284,11 @@ static void draw_move(t_tg *tg, t_glist *glist) {
   for (j = 0;j < tg->rows;j++) {
     for (i = 0;i < tg->cols;i++) {
       sys_vgui(".x%lx.c coords %lxTGLSQ%d.%d %d %d %d %d\n",
-               canvas, tg, i, j, curx, cury, curx + tg->ssize, cury + tg->ssize);
-      curx += (tg->ssize+tg->spacing);
+               canvas, tg, i, j, curx, cury, curx + tg->cell_size, cury + tg->cell_size);
+      curx += (tg->cell_size+tg->spacing);
     }
     curx = text_xpix(&tg->x_obj, glist);
-    cury += (tg->ssize+tg->spacing);
+    cury += (tg->cell_size+tg->spacing);
   }
 
   curx = text_xpix(&tg->x_obj, glist)-tg->spacing;
@@ -352,15 +352,15 @@ static void col_and_row(t_tg *tg, struct _glist *glist,
     return;
   }
 
-  int fss = tg->ssize+tg->spacing;
+  int fss = tg->cell_size+tg->spacing;
   int rm = relx % fss;
-  if (rm > tg->ssize) {
+  if (rm > tg->cell_size) {
     *row = *col = -1;
     return;
   }
 
   rm = rely % fss;
-  if (rm > tg->ssize) {
+  if (rm > tg->cell_size) {
     *row = *col = -1;
     return;
   }
@@ -425,7 +425,7 @@ static void tglgrid_properties(t_gobj *z, t_glist *owner) {
 
   sprintf(buf, "tglgrid_dialog %%s %s %d %d %d %d %s %s #FFFFFF\n",
           tg->name->s_name,
-          (int)tg->cols, (int)tg->rows, (int)tg->ssize, (int)tg->spacing,
+          (int)tg->cols, (int)tg->rows, (int)tg->cell_size, (int)tg->spacing,
           tg->tglfill, tg->untglfill);
 
   gfxstub_new(&tg->x_obj.ob_pd, tg, buf);
@@ -449,7 +449,7 @@ static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
     int i;
     t_int newcols = (t_int)argv[0].a_w.w_float;
     t_int newrows = (t_int)argv[1].a_w.w_float;
-    tg->ssize = (t_int)argv[2].a_w.w_float;
+    tg->cell_size = (t_int)argv[2].a_w.w_float;
     tg->spacing = (t_int)argv[3].a_w.w_float;
     snprintf(tg->tglfill,8,argv[4].a_w.w_symbol->s_name);
     snprintf(tg->untglfill,8,argv[5].a_w.w_symbol->s_name);

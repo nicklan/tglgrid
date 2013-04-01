@@ -428,16 +428,31 @@ static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
 
     if (newcols != tg->cols ||
         newrows != tg->rows) {
+      char* tgld;
+      int j,olim;
       if (newrows != tg->rows) {
         tg->outputvals = (t_atom*)resizebytes(tg->outputvals,
                                               sizeof(t_atom)*tg->rows,
                                               sizeof(t_atom)*newrows);
         for(i = tg->rows;i < newrows;i++) tg->outputvals[i].a_type = A_FLOAT;
       }
-      tg->toggled = (char*)resizebytes(tg->toggled,
-                                       sizeof(char)*tg->rows*tg->cols,
-                                       sizeof(char)*newrows*newcols);
-      for (i = (tg->rows*tg->cols);i<(newrows*newcols);i++) tg->toggled[i]='0';
+      tgld = (char*)getbytes(sizeof(char)*newrows*newcols);
+      olim = tg->rows*tg->cols;
+      for (i = 0,j=0;i<(newrows*newcols);i++) {
+        if (j>=olim) tgld[i]='0';
+        else {
+          if ((i % newrows) >= tg->rows) {
+            tgld[i]='0';
+          }
+          else {
+            tgld[i] = tg->toggled[j];
+            j++;
+            if ((j % tg->rows) >= newrows) j+=(tg->rows-newrows);
+          }
+        }
+      }
+      freebytes(tg->toggled, sizeof(char)*tg->rows*tg->cols);
+      tg->toggled = tgld;
       tg->cols = newcols;
       tg->rows = newrows;
     }

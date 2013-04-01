@@ -319,9 +319,11 @@ static void tglgrid_getrect(t_gobj *z, t_glist *owner,
 
 static void tglgrid_save(t_gobj *z, t_binbuf *b) {
   t_tg *tg = (t_tg*)z;
-  binbuf_addv(b,"ssiisiis",gensym("#X"),gensym("obj"),
+  binbuf_addv(b,"ssiisiisiiss",gensym("#X"),gensym("obj"),
               (t_int)tg->x_obj.te_xpix, (t_int)tg->x_obj.te_ypix,
-              tg->name,tg->cols,tg->rows,gensym(tg->toggled));
+              tg->name,tg->cols,tg->rows,gensym(tg->toggled),
+              tg->cell_size,tg->spacing,
+              gensym(tg->tglfill),gensym(tg->untglfill));
   binbuf_addv(b,";");
 }
 

@@ -1,8 +1,6 @@
-proc _ {str} {
-    return $str
-}
+namespace eval ::tglgrid:: {}
 
-proc configure_canvas {id canv} {
+proc ::tglgrid::configure_canvas {id canv} {
     set vid [string trimleft $id .]
     set var_tglgui_cell_size [concat tglgui_cell_size_$vid]
     global $var_tglgui_cell_size
@@ -39,7 +37,7 @@ proc configure_canvas {id canv} {
     $canv itemconfigure $id.previewcell3 -fill $tglfill
 }
 
-proc layout_changed {id canv newval spc} {
+proc ::tglgrid::layout_changed {id canv newval spc} {
     if {$newval == ""} {
         return 1
     }
@@ -62,7 +60,7 @@ proc layout_changed {id canv newval spc} {
             }
         }
         if $changed {
-            configure_canvas $id $canv
+            ::tglgrid::configure_canvas $id $canv
         }
         return 1
     } else {
@@ -70,7 +68,7 @@ proc layout_changed {id canv newval spc} {
     }
 }
 
-proc handle_color {id canv tgl} {
+proc ::tglgrid::handle_color {id canv tgl} {
     set vid [string trimleft $id .]
     if {$tgl == 0} {
         set var_tglgui_tglfill [concat tglgui_tglfill_$vid]
@@ -83,10 +81,10 @@ proc handle_color {id canv tgl} {
         set selected_color [tk_chooseColor -initialcolor [eval concat $$var_tglgui_untglfill]]
         set $var_tglgui_untglfill $selected_color
     }
-    configure_canvas $id $canv
+    ::tglgrid::configure_canvas $id $canv
 }
 
-proc tglgrid_apply {id} {
+proc ::tglgrid::apply {id} {
     set vid [string trimleft $id .]
 
     set var_tglgui_cols [concat tglgui_cols_$vid]
@@ -111,16 +109,16 @@ proc tglgrid_apply {id} {
                 [eval concat $$var_tglgui_untglfill]]
 }
 
-proc tglgrid_cancel {id} {
+proc ::tglgrid::cancel {id} {
     pdsend "$id cancel"
 }
 
-proc tglgrid_ok {id} {
-    tglgrid_apply $id
-    tglgrid_cancel $id
+proc ::tglgrid::ok {id} {
+    ::tglgrid::apply $id
+    ::tglgrid::cancel $id
 }
 
-proc tglgrid_dialog {id name cols rows cell_size spacing tglfill untglfill canvcol} {
+proc ::tglgrid::dialog {id name cols rows cell_size spacing tglfill untglfill canvcol} {
     set vid [string trimleft $id .]
 
     set var_tglgui_cols [concat tglgui_cols_$vid]
@@ -170,11 +168,11 @@ proc tglgrid_dialog {id name cols rows cell_size spacing tglfill untglfill canvc
     label $id.space.dummy1 -text " " -width 5
     label $id.space.size_lab -text [_ "Cell Size: "] -width 10
     entry $id.space.size_ent -width 5 \
-        -validate all -validatecommand "layout_changed $id $id.preview.previewcell %P 0"
+        -validate all -validatecommand "::tglgrid::layout_changed $id $id.preview.previewcell %P 0"
     $id.space.size_ent insert 0 [eval concat $$var_tglgui_cell_size]
     label $id.space.space_lab -text [_ "Spacing: "] -width 10
     entry $id.space.space_ent -width 5 \
-        -validate all -validatecommand "layout_changed $id $id.preview.previewcell %P 1"
+        -validate all -validatecommand "::tglgrid::layout_changed $id $id.preview.previewcell %P 1"
     $id.space.space_ent insert 0 [eval concat $$var_tglgui_spacing]
     puts [$id.space.space_ent configure]
     pack $id.space.size_lab $id.space.size_ent $id.space.dummy1 $id.space.space_lab $id.space.space_ent -side left
@@ -186,9 +184,9 @@ proc tglgrid_dialog {id name cols rows cell_size spacing tglfill untglfill canvc
     frame $id.colors.select
     pack $id.colors.select -side top
     button $id.colors.select.tglfill -text [_ "Toggled Color"] \
-        -command "handle_color $id $id.preview.previewcell 0"
+        -command "::tglgrid::handle_color $id $id.preview.previewcell 0"
     button $id.colors.select.untglfill -text [_ "Un-Toggled Color"] \
-        -command "handle_color $id $id.preview.previewcell 1"
+        -command "::tglgrid::handle_color $id $id.preview.previewcell 1"
 
     pack $id.colors.select.tglfill $id.colors.select.untglfill -side left
 
@@ -206,12 +204,22 @@ proc tglgrid_dialog {id name cols rows cell_size spacing tglfill untglfill canvc
     frame $id.buttonframe
     pack $id.buttonframe -side bottom -fill x -pady 2m
     button $id.buttonframe.cancel -text {Cancel}\
-        -command "tglgrid_cancel $id"
+        -command "::tglgrid::cancel $id"
     button $id.buttonframe.apply -text {Apply}\
-        -command "tglgrid_apply $id"
+        -command "::tglgrid::apply $id"
     button $id.buttonframe.ok -text {OK}\
-        -command "tglgrid_ok $id"
+        -command "::tglgrid::ok $id"
     pack $id.buttonframe.cancel -side left -expand 1
     pack $id.buttonframe.apply -side left -expand 1
     pack $id.buttonframe.ok -side left -expand 1
+}
+
+# method taken from hcs::cursor
+# in Pd 0.43, the internal proc changed from 'pd' to 'pdsend'
+proc ::tglgrid::setup {} {
+    # check if we are Pd < 0.43, which has no 'pdsend', but a 'pd' coded in C
+    if {[llength [info procs "::pdsend"]] == 0} {
+        pdtk_post "creating 0.43+ 'pdsend' using legacy 'pd' proc"
+        proc ::pdsend {args} {pd "[join $args { }] ;"}
+    }
 }

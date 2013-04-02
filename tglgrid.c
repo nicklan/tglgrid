@@ -15,12 +15,11 @@
  */
 
 
-#include "m_pd.h"
-#include "g_canvas.h"
-#include "g_all_guis.h"
+#include <m_pd.h>
+#include <m_imp.h>
+#include <g_canvas.h>
+#include <g_all_guis.h>
 #include <string.h>
-
-#include "prefs_tcl.h"
 
 #define UNUSED(x) (void)(x)
 
@@ -122,7 +121,6 @@ void tg_say(t_tg* tg, t_floatarg cf, t_floatarg rf) {
     outlet_float(tg->f_out,0);
   else
     outlet_float(tg->f_out,1);
-
 }
 
 static int check_arg(t_atom *arg, t_atomtype target, int idx) {
@@ -441,7 +439,7 @@ static void tglgrid_properties(t_gobj *z, t_glist *owner) {
 
   UNUSED(owner);
 
-  sprintf(buf, "tglgrid_dialog %%s %s %d %d %d %d %s %s #FFFFFF\n",
+  sprintf(buf, "::tglgrid::dialog %%s %s %d %d %d %d %s %s #FFFFFF\n",
           tg->name->s_name,
           (int)tg->cols, (int)tg->rows, (int)tg->cell_size, (int)tg->spacing,
           tg->tglfill, tg->untglfill);
@@ -512,7 +510,6 @@ static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
 }
 
 void tglgrid_setup(void) {
-  sys_gui(prefs_tcl);
   tg_class = class_new(gensym("tglgrid"),
                        (t_newmethod)tg_new,
                        (t_method)tg_free,
@@ -544,6 +541,11 @@ void tglgrid_setup(void) {
   tglgrid_behavior.w_deletefn =     tglgrid_delete;
   tglgrid_behavior.w_visfn =        tglgrid_vis;
   tglgrid_behavior.w_clickfn =      tglgrid_click;
+
+  sys_vgui("eval [read [open {%s/%s.tcl}]]\n",
+           tg_class->c_externdir->s_name,
+           tg_class->c_name->s_name);
+ 	sys_vgui("::tglgrid::setup\n");
 
 #if PD_MINOR_VERSION >= 37
   class_setpropertiesfn(tg_class, tglgrid_properties);

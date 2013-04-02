@@ -211,8 +211,8 @@ static void draw_new(t_tg* tg, t_glist *glist) {
 
   tg->canvas = canvas;
 
-  curx = text_xpix(&tg->x_obj, glist);
-  cury = text_ypix(&tg->x_obj, glist);
+  curx = text_xpix(&tg->x_obj, glist)+tg->spacing;
+  cury = text_ypix(&tg->x_obj, glist)+tg->spacing;
 
   for (r = 0;r < tg->rows;r++) {
     for (c = 0;c < tg->cols;c++) {
@@ -231,12 +231,12 @@ static void draw_new(t_tg* tg, t_glist *glist) {
                canvas,tg,c,r,canvas,tg,c,r);
       curx += (tg->cell_size+tg->spacing);
     }
-    curx = text_xpix(&tg->x_obj, glist);
+    curx = text_xpix(&tg->x_obj, glist)+tg->spacing;
     cury += (tg->cell_size+tg->spacing);
   }
 
-  curx = text_xpix(&tg->x_obj, glist)-tg->spacing;
-  cury = text_ypix(&tg->x_obj, glist)-tg->spacing;
+  curx = text_xpix(&tg->x_obj, glist);
+  cury = text_ypix(&tg->x_obj, glist);
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -tags %lxTGLBOUND\n",
            canvas, curx, cury, curx + w, cury + h, tg, canvas);
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLIN1\n",
@@ -278,8 +278,8 @@ static void draw_move(t_tg *tg, t_glist *glist) {
   int w = full_width(tg);
   int h = full_height(tg);
 
-  curx = text_xpix(&tg->x_obj, glist);
-  cury = text_ypix(&tg->x_obj, glist);
+  curx = text_xpix(&tg->x_obj, glist)+tg->spacing;
+  cury = text_ypix(&tg->x_obj, glist)+tg->spacing;
 
   for (j = 0;j < tg->rows;j++) {
     for (i = 0;i < tg->cols;i++) {
@@ -287,12 +287,12 @@ static void draw_move(t_tg *tg, t_glist *glist) {
                canvas, tg, i, j, curx, cury, curx + tg->cell_size, cury + tg->cell_size);
       curx += (tg->cell_size+tg->spacing);
     }
-    curx = text_xpix(&tg->x_obj, glist);
+    curx = text_xpix(&tg->x_obj, glist)+tg->spacing;
     cury += (tg->cell_size+tg->spacing);
   }
 
-  curx = text_xpix(&tg->x_obj, glist)-tg->spacing;
-  cury = text_ypix(&tg->x_obj, glist)-tg->spacing;
+  curx = text_xpix(&tg->x_obj, glist);
+  cury = text_ypix(&tg->x_obj, glist);
   sys_vgui(".x%lx.c coords %lxTGLBOUND %d %d %d %d\n",
            canvas, tg, curx, cury, curx + w, cury + h);
   sys_vgui(".x%lx.c coords %lxTGLIN1 %d %d %d %d\n",

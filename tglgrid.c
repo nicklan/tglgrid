@@ -45,7 +45,7 @@ typedef struct tg {
   t_float outputcol;
   t_atom *outputvals;
 
-  int selected;
+  int selected,byrow;
   char *toggled;
   t_symbol *name;
   t_glist *glist;
@@ -79,8 +79,7 @@ static char do_toggle(t_tg* tg, int row, int col) {
   return '0';
 }
 
-
-void tg_bang(t_tg* tg) {
+static void bang_col(t_tg* tg) {
   int i,j,coff;
   t_int outcol = tg->outputcol;
   if (outcol < 0) outcol = 0;
@@ -92,6 +91,24 @@ void tg_bang(t_tg* tg) {
       tg->outputvals[j++].a_w.w_float = (t_float)(tg->rows-i);
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
+}
+
+static void bang_row(t_tg* tg) {
+  int i,j;
+  t_int outrow = tg->outputcol;
+  if (outrow < 0) outrow = 0;
+  if (outrow >= tg->rows) outrow = tg->rows-1;
+
+  for (j=0,i = 0;i < tg->cols;i++)
+    if (tg->toggled[(i*tg->rows)+outrow]!='0')
+      tg->outputvals[j++].a_w.w_float = (t_float)(i+1);
+
+  outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
+}
+
+void tg_bang(t_tg* tg) {
+  if (tg->byrow) bang_row(tg);
+  else bang_col(tg);
 }
 
 void tg_tgl(t_tg* tg, t_floatarg cf, t_floatarg rf) {
@@ -135,7 +152,6 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
   int i,tocheck;
   t_tg *tg = (t_tg*)pd_new(tg_class);
 
-  UNUSED(s);
   if (argc > 7) {
     post("tglgrid: warning, too many arguments passed to tglgrid, ignoring some");
     argc = 7;
@@ -165,6 +181,8 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
   else          sprintf(tg->tglfill,"#909090");
   if (argc > 6) snprintf(tg->untglfill,8,argv[6].a_w.w_symbol->s_name);
   else          sprintf(tg->untglfill,"#FFFFFF");
+
+  tg->byrow = !strncmp(s->s_name,"rtglgrid",8);
 
   tg->outputcol = -1;
   tg->outputvals = (t_atom *)getbytes(sizeof(t_atom) * tg->rows);
@@ -518,6 +536,7 @@ void tglgrid_setup(void) {
                        CLASS_DEFAULT,
                        A_GIMME,
                        0);
+  class_addcreator((t_newmethod)tg_new,gensym("rtglgrid"),A_GIMME,0);
   class_addbang(tg_class, tg_bang);
   class_addmethod(tg_class,
                   (t_method)tg_tgl,gensym("tgl"),

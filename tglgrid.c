@@ -266,7 +266,8 @@ static void draw_erase(t_tg* tg, t_glist* glist) {
   sys_vgui(".x%lx.c delete %lxTGLBOUND\n", canvas, tg);
   sys_vgui(".x%lx.c delete %lxTGLIN1\n", canvas, tg);
   sys_vgui(".x%lx.c delete %lxTGLIN2\n", canvas, tg);
-  sys_vgui(".x%lx.c delete %lxTGLOUT\n", canvas, tg);
+  sys_vgui(".x%lx.c delete %lxTGLOUT1\n", canvas, tg);
+  sys_vgui(".x%lx.c delete %lxTGLOUT2\n", canvas, tg);
   for (j = 0;j < tg->rows;j++)
     for (i = 0;i < tg->cols;i++)
       sys_vgui(".x%lx.c delete %lxTGLSQ%d.%d\n", canvas, tg, i, j);

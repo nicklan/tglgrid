@@ -50,6 +50,7 @@ typedef struct tg {
   char *toggled;
   t_symbol *name;
   t_glist *glist;
+  t_outlet *f_out;
 } t_tg;
 
 static inline char toggle(t_tg *tg, int col, int row) {
@@ -112,6 +113,16 @@ void tg_off(t_tg* tg, t_floatarg cf, t_floatarg rf) {
   t_int r = (int)rf;
   if (toggle_val(tg,c,r)!='0')
     do_toggle(tg,r,c);
+}
+
+void tg_say(t_tg* tg, t_floatarg cf, t_floatarg rf) {
+  t_int c = (int)cf;
+  t_int r = (int)rf;
+  if (toggle_val(tg,c,r)=='0')
+    outlet_float(tg->f_out,0);
+  else
+    outlet_float(tg->f_out,1);
+
 }
 
 static int check_arg(t_atom *arg, t_atomtype target, int idx) {
@@ -179,6 +190,7 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
 
   floatinlet_new(&tg->x_obj, &tg->outputcol);
   outlet_new(&tg->x_obj, &s_list);
+  tg->f_out = outlet_new(&tg->x_obj, &s_float);
 
   return tg;
 }
@@ -243,8 +255,10 @@ static void draw_new(t_tg* tg, t_glist *glist) {
            canvas, curx, cury, curx + IOWIDTH, cury + 4, tg);
   sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLIN2\n",
            canvas, curx+w-IOWIDTH, cury, curx + w, cury + 4, tg);
-  sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLOUT\n",
+  sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLOUT1\n",
            canvas, curx, cury+h-4, curx + IOWIDTH, cury + h, tg);
+  sys_vgui(".x%lx.c create rectangle %d %d %d %d -fill #000000 -tags %lxTGLOUT2\n",
+           canvas, curx+w-IOWIDTH, cury+h-4, curx + w, cury + h, tg);
   canvas_fixlinesfor(canvas, (t_text*)tg);
 }
 
@@ -299,8 +313,10 @@ static void draw_move(t_tg *tg, t_glist *glist) {
            canvas, tg, curx, cury, curx + IOWIDTH, cury + 4);
   sys_vgui(".x%lx.c coords %lxTGLIN2 %d %d %d %d\n",
            canvas, tg, curx+w-IOWIDTH, cury, curx + w, cury + 4);
-  sys_vgui(".x%lx.c coords %lxTGLOUT %d %d %d %d\n",
+  sys_vgui(".x%lx.c coords %lxTGLOUT1 %d %d %d %d\n",
            canvas, tg, curx, cury+h-4, curx + IOWIDTH, cury + h);
+  sys_vgui(".x%lx.c coords %lxTGLOUT2 %d %d %d %d\n",
+           canvas, tg, curx+w-IOWIDTH, cury+h-4, curx + w, cury + h);
   canvas_fixlinesfor(canvas, (t_text*)tg);
 }
 
@@ -513,6 +529,9 @@ void tglgrid_setup(void) {
                   A_FLOAT,A_FLOAT,0);
   class_addmethod(tg_class,
                   (t_method)tg_off,gensym("off"),
+                  A_FLOAT,A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_say,gensym("say"),
                   A_FLOAT,A_FLOAT,0);
   class_addmethod(tg_class,
                   (t_method)tglgrid_dialog,gensym("dialog"),

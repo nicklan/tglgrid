@@ -90,17 +90,11 @@ maintain their toggled state \, new cells will be untoggled \;;
 #X obj -101 250 metro 500;
 #X obj -101 814 makenote 64 500;
 #X obj -91 318 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
--258113 -1 0 1;
-#X obj 354 540 loadbang;
-#X text 413 538 C minor pentatonic;
-#X text 376 645 C pentatonic;
-#X obj 354 635 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-258113 -1 32900 1;
+#X text 378 533 C pentatonic;
+#X obj 354 518 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X obj 354 516 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X msg 354 564 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
-60 63 65 67 70 72;
-#X msg 354 663 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
+#X msg 354 551 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
 60 62 64 67 69 72;
 #X obj 61 785 table _tglgrid_pitches;
 #X obj -101 785 tabread _tglgrid_pitches;
@@ -115,7 +109,7 @@ the number of columns \, the last column;
 column. The bottom-most cell is 0;
 #X obj 353 730 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X text 375 740 A pentatonic;
+#X text 382 740 A pentatonic;
 #X msg 353 758 \; _tglgrid_pitches 0 33 35 36 40 41 45 47 48 52 53
 57 59 60 64 65 69;
 #X obj 367 144 cnv 15 250 140 empty empty empty 20 12 0 14 -14482 -66577
@@ -130,39 +124,45 @@ tglgrid. You can change the scale played by banging one of the pre-defined
 scales to the right.;
 #X obj 393 187 rtglgrid 2 2 0xx0 20 2 #e0633e #0c8844;
 #X floatatom 448 172 5 0 0 0 - - -;
+#X text 382 633 C minor pentatonic;
+#X obj 353 623 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 353 652 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
+60 63 65 67 70 72;
+#X obj 300 518 loadbang;
 #X connect 10 0 15 0;
-#X connect 10 0 33 0;
+#X connect 10 0 29 0;
 #X connect 11 0 19 0;
 #X connect 11 0 10 1;
 #X connect 12 0 10 0;
 #X connect 12 1 11 0;
 #X connect 13 0 17 0;
 #X connect 14 0 11 0;
-#X connect 15 0 28 0;
-#X connect 15 1 28 0;
-#X connect 15 2 28 0;
-#X connect 15 3 28 0;
-#X connect 15 4 28 0;
-#X connect 15 5 28 0;
-#X connect 15 6 28 0;
-#X connect 15 7 28 0;
-#X connect 15 8 28 0;
-#X connect 15 9 28 0;
-#X connect 15 10 28 0;
-#X connect 15 11 28 0;
-#X connect 15 12 28 0;
-#X connect 15 13 28 0;
-#X connect 15 14 28 0;
-#X connect 15 15 28 0;
+#X connect 15 0 24 0;
+#X connect 15 1 24 0;
+#X connect 15 2 24 0;
+#X connect 15 3 24 0;
+#X connect 15 4 24 0;
+#X connect 15 5 24 0;
+#X connect 15 6 24 0;
+#X connect 15 7 24 0;
+#X connect 15 8 24 0;
+#X connect 15 9 24 0;
+#X connect 15 10 24 0;
+#X connect 15 11 24 0;
+#X connect 15 12 24 0;
+#X connect 15 13 24 0;
+#X connect 15 14 24 0;
+#X connect 15 15 24 0;
 #X connect 17 0 12 0;
 #X connect 18 0 16 0;
 #X connect 18 1 16 1;
-#X connect 20 0 25 0;
-#X connect 23 0 26 0;
-#X connect 24 0 20 0;
-#X connect 28 0 18 0;
-#X connect 35 0 37 0;
-#X connect 40 0 43 0;
-#X connect 43 0 41 0;
-#X connect 44 0 43 1;
+#X connect 21 0 22 0;
+#X connect 24 0 18 0;
+#X connect 31 0 33 0;
+#X connect 36 0 39 0;
+#X connect 39 0 37 0;
+#X connect 40 0 39 1;
+#X connect 42 0 43 0;
+#X connect 44 0 22 0;
 #X coords 0 10080 1 10070 85 60 0;

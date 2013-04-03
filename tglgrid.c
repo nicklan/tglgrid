@@ -52,6 +52,42 @@ typedef struct tg {
   t_outlet *f_out;
 } t_tg;
 
+static void draw_new(t_tg* tg, t_glist *glist);
+static void draw_erase(t_tg* tg, t_glist* glist);
+
+static void resize_to(t_tg *tg, t_int newcols, t_int newrows) {
+  if (newcols != tg->cols ||
+      newrows != tg->rows) {
+    char* tgld;
+    int i,j,olim;
+    if (newrows != tg->rows) {
+      tg->outputvals = (t_atom*)resizebytes(tg->outputvals,
+                                            sizeof(t_atom)*tg->rows,
+                                            sizeof(t_atom)*newrows);
+      for(i = tg->rows;i < newrows;i++) tg->outputvals[i].a_type = A_FLOAT;
+    }
+    tgld = (char*)getbytes(sizeof(char)*newrows*newcols);
+    olim = tg->rows*tg->cols;
+    for (i = 0,j=0;i<(newrows*newcols);i++) {
+      if (j>=olim) tgld[i]='0';
+      else {
+        if ((i % newrows) >= tg->rows) {
+          tgld[i]='0';
+        }
+        else {
+          tgld[i] = tg->toggled[j];
+          j++;
+          if ((j % tg->rows) >= newrows) j+=(tg->rows-newrows);
+        }
+      }
+    }
+    freebytes(tg->toggled, sizeof(char)*tg->rows*tg->cols);
+    tg->toggled = tgld;
+    tg->cols = newcols;
+    tg->rows = newrows;
+  }
+}
+
 static inline char toggle(t_tg *tg, int col, int row) {
   int coff = col*tg->rows;
   // use 'x' since '1' will make pd think our saved binbuf is a number
@@ -146,6 +182,17 @@ void tg_csay(t_tg* tg, t_floatarg cf) {
 void tg_rsay(t_tg* tg, t_floatarg rf) {
   t_int r = (int)rf;
   bang_row(tg,r);
+}
+
+void tg_size(t_tg* tg, t_floatarg cf, t_floatarg rf) {
+  t_int c = (t_int)cf;
+  t_int r = (t_int)rf;
+
+  if (c != tg->cols || r != tg->rows) {
+    draw_erase(tg,tg->glist);
+    resize_to(tg,c,r);
+    draw_new(tg,tg->glist);
+  }
 }
 
 static int check_arg(t_atom *arg, t_atomtype target, int idx) {
@@ -489,7 +536,6 @@ static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
            argv[5].a_type != A_SYMBOL)
     error("tglgrid: invalid parameter types passed to tglgrid_dialog");
   else {
-    int i;
     t_int newcols = (t_int)argv[0].a_w.w_float;
     t_int newrows = (t_int)argv[1].a_w.w_float;
     tg->cell_size = (t_int)argv[2].a_w.w_float;
@@ -500,38 +546,7 @@ static void tglgrid_dialog(t_tg *tg, t_symbol *s, int argc, t_atom *argv) {
     // need to erase before we change # of rows/cols
     // so we erase the old size
     draw_erase(tg,tg->glist);
-
-    if (newcols != tg->cols ||
-        newrows != tg->rows) {
-      char* tgld;
-      int j,olim;
-      if (newrows != tg->rows) {
-        tg->outputvals = (t_atom*)resizebytes(tg->outputvals,
-                                              sizeof(t_atom)*tg->rows,
-                                              sizeof(t_atom)*newrows);
-        for(i = tg->rows;i < newrows;i++) tg->outputvals[i].a_type = A_FLOAT;
-      }
-      tgld = (char*)getbytes(sizeof(char)*newrows*newcols);
-      olim = tg->rows*tg->cols;
-      for (i = 0,j=0;i<(newrows*newcols);i++) {
-        if (j>=olim) tgld[i]='0';
-        else {
-          if ((i % newrows) >= tg->rows) {
-            tgld[i]='0';
-          }
-          else {
-            tgld[i] = tg->toggled[j];
-            j++;
-            if ((j % tg->rows) >= newrows) j+=(tg->rows-newrows);
-          }
-        }
-      }
-      freebytes(tg->toggled, sizeof(char)*tg->rows*tg->cols);
-      tg->toggled = tgld;
-      tg->cols = newcols;
-      tg->rows = newrows;
-    }
-
+    resize_to(tg,newcols,newrows);
     draw_new(tg,tg->glist);
   }
 }
@@ -564,6 +579,9 @@ void tglgrid_setup(void) {
   class_addmethod(tg_class,
                   (t_method)tg_rsay,gensym("rsay"),
                   A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_size,gensym("size"),
+                  A_FLOAT,A_FLOAT,0);
   class_addmethod(tg_class,
                   (t_method)tglgrid_dialog,gensym("dialog"),
                   A_GIMME, 0);

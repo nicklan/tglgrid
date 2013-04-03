@@ -123,7 +123,7 @@ static void bang_col(t_tg* tg, t_int outcol) {
 
   for (j=0,i = 0;i < tg->rows;i++)
     if (tg->toggled[i+coff]!='0')
-      tg->outputvals[j++].a_w.w_float = (t_float)(tg->rows-i);
+      tg->outputvals[j++].a_w.w_float = (t_float)(tg->rows-i-1);
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }
@@ -135,7 +135,7 @@ static void bang_row(t_tg* tg, t_int outrow) {
 
   for (j=0,i = 0;i < tg->cols;i++)
     if (tg->toggled[(i*tg->rows)+outrow]!='0')
-      tg->outputvals[j++].a_w.w_float = (t_float)(i+1);
+      tg->outputvals[j++].a_w.w_float = (t_float)(i);
 
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }

@@ -20,20 +20,24 @@ Wilkes for Pd version 0.42.;
 #X text 12 85 INLET_1 int - select active column;
 #X restore 652 101 pd META;
 #N canvas 2 70 1916 1008 arguments 0;
-#X obj 68 244 tglgrid 2 3 0t0t00 25 5 #ac0000 #D9D9D9;
-#X text 138 246 <- tglgrid 2 3 0x0x00 25 5 #AC0000 #D9D9D9;
-#X text 50 72 [# of columns] [# of rows] [toggled string] [cell size]
-[cell spacing] [toggled fill color] [untoggled fill color];
+#X obj 59 253 tglgrid 2 3 0t0t00 25 5 #ac0000 #D9D9D9;
+#X text 129 255 <- tglgrid 2 3 0x0x00 25 5 #AC0000 #D9D9D9;
 #X text 52 107 Default size is 16x16 \, cell size 20 and spacing 2
 ;
-#X text 52 130 The toggled string is a sequence of 0s for off cells
-and any other character for on cells (use a letter otherwise pd will
-think you're typing a number). The second character is the cell in
-the first column second row and so on.;
 #X text 51 54 Argument list is as follows:;
-#X text 52 185 Colors should be specified in #XXXXXX form.;
+#X text 53 214 Colors should be specified in #XXXXXX form.;
 #X obj 16 26 cnv 15 100 20 empty empty Arguments 20 12 0 16 -262144
 -13330 0;
+#X text 50 72 [# of columns] [# of rows] [toggled cells] [cell size]
+[cell spacing] [toggled fill color] [untoggled fill color];
+#X text 52 129 The toggled cells can be a number or a string. If it
+is a number then 0 means all untoggled \, anything else means all toggeled.
+As a string \, it is a sequence of 0s for off cells and any other character
+for on cells (use a letter otherwise pd will think you're typing a
+number). The second character is the cell in the first column second
+row and so on.;
+#X obj 60 375 tglgrid 2 2 xxxx 20 2 #909090 #FFFFFF;
+#X text 116 367 <- tglgrid 2 2 1;
 #X restore 399 64 pd arguments;
 #X text 248 64 Details about arguments:;
 #X text 180 27 Right click for properties such as color \, cellsize

@@ -79,9 +79,8 @@ static char do_toggle(t_tg* tg, int row, int col) {
   return '0';
 }
 
-static void bang_col(t_tg* tg) {
+static void bang_col(t_tg* tg, t_int outcol) {
   int i,j,coff;
-  t_int outcol = tg->outputcol;
   if (outcol < 0) outcol = 0;
   if (outcol >= tg->cols) outcol = tg->cols-1;
   coff = outcol*tg->rows;
@@ -93,9 +92,8 @@ static void bang_col(t_tg* tg) {
   outlet_list(tg->x_obj.ob_outlet, &s_list, j, tg->outputvals);
 }
 
-static void bang_row(t_tg* tg) {
+static void bang_row(t_tg* tg, t_int outrow) {
   int i,j;
-  t_int outrow = tg->outputcol;
   if (outrow < 0) outrow = 0;
   if (outrow >= tg->rows) outrow = tg->rows-1;
 
@@ -107,8 +105,8 @@ static void bang_row(t_tg* tg) {
 }
 
 void tg_bang(t_tg* tg) {
-  if (tg->byrow) bang_row(tg);
-  else bang_col(tg);
+  if (tg->byrow) bang_row(tg,tg->outputcol);
+  else bang_col(tg,tg->outputcol);
 }
 
 void tg_tgl(t_tg* tg, t_floatarg cf, t_floatarg rf) {
@@ -138,6 +136,16 @@ void tg_say(t_tg* tg, t_floatarg cf, t_floatarg rf) {
     outlet_float(tg->f_out,0);
   else
     outlet_float(tg->f_out,1);
+}
+
+void tg_csay(t_tg* tg, t_floatarg cf) {
+  t_int c = (int)cf;
+  bang_col(tg,c);
+}
+
+void tg_rsay(t_tg* tg, t_floatarg rf) {
+  t_int r = (int)rf;
+  bang_row(tg,r);
 }
 
 static int check_arg(t_atom *arg, t_atomtype target, int idx) {
@@ -550,6 +558,12 @@ void tglgrid_setup(void) {
   class_addmethod(tg_class,
                   (t_method)tg_say,gensym("say"),
                   A_FLOAT,A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_csay,gensym("csay"),
+                  A_FLOAT,0);
+  class_addmethod(tg_class,
+                  (t_method)tg_rsay,gensym("rsay"),
+                  A_FLOAT,0);
   class_addmethod(tg_class,
                   (t_method)tglgrid_dialog,gensym("dialog"),
                   A_GIMME, 0);

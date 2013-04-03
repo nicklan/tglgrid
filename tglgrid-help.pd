@@ -1,61 +1,14 @@
 #N canvas 2 70 1916 1008 10;
-#X obj -101 319 tglgrid 16 16 000000000000x00x00000000000x000000000000xx00x0000000000000x000000000000x00000000000x00x00000000000000000x0x0000000000000x000000000x00x00000000000000000x00000000000x00x0000000000000x00xx000000000000x00x0000000000000x00x00000000000000x00x000000000000000x0000
-;
-#X obj 246 261 count 16;
-#X obj -101 244 t b b;
-#X obj -101 176 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1
-0 1;
-#X msg 246 233 reset;
-#X obj -101 715 unpack f f f f f f f f f f f f f f f f;
-#X obj -101 807 noteout 1;
-#X obj -101 210 metro 500;
-#X obj -101 774 makenote 64 500;
-#X obj -91 278 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
--258113 -1 0 1;
-#X obj 354 500 loadbang;
-#X text 413 498 C minor pentatonic;
-#X text 376 605 C pentatonic;
-#X obj 354 595 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X obj 354 476 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X msg 354 524 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
-60 63 65 67 70 72;
-#X msg 354 623 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
-60 62 64 67 69 72;
-#X obj 61 745 table _tglgrid_pitches;
-#X obj -101 745 tabread _tglgrid_pitches;
-#X text 434 445 Change the playing scale here;
-#X text 163 17 A tglgrid is a grid of cells that can each be toggled
+#X text -234 47 A tglgrid is a grid of cells that can each be toggled
 on and off. Bang the left input to output a list of the active cells
 in the currently active column. Send a column number to the right input
 to select the active column. Everything is 0-indexed. Arguments are
 cols \, rows and active cells \, see below right for argument example
 ;
-#X obj 487 208 tglgrid 2 3 0x0x00;
-#X text 542 207 <- tglgrid 2 3 0x0x00;
-#X text -267 301 A bang here triggers output for active column;
-#X text 273 314 Here you can select the active column (0-indexed).
-A value less than zero activates column 0 \, and a value greater than
-the number of columns \, the last column;
-#X text 255 313 <-;
-#X obj -230 744 print tglgrid-help;
-#X text -242 680 Output is a list of the selected cells in the active
-column. The bottom-most cell is 0;
-#X obj 353 690 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
--1 -1;
-#X text 375 700 A pentatonic;
-#X msg 353 718 \; _tglgrid_pitches 0 33 35 36 40 41 45 47 48 52 53
-57 59 60 64 65 69;
-#X text -238 125 Try connecting pd's midi to your favorite synth and
-then turning on the metro below. Then click some of the cells in the
-tglgrid. You can change the scale played by banging on of the pre-defined
-scales to the right.;
-#X text 491 123 Arguments set # of columns \, # of rows \, and then
-active cells. The active cells string is a sequence of 0s for off cells
-and any other character for on cells (use a letter otherwise pd will
-think you're typing a number). The second character is the cell in
-the first column second row and so on. The default is 16x16;
+#X obj -264 17 cnv 15 100 20 empty empty tglgrid 20 12 0 16 -262144
+-13330 0;
+#X obj 168 21 cnv 15 450 100 empty empty empty 20 12 0 14 -202753 -66577
+0;
 #N canvas 2 70 1916 1008 META 0;
 #X text 12 125 HELP_PATCH_AUTHORS "pd meta" information added by Jonathan
 Wilkes for Pd version 0.42.;
@@ -65,44 +18,147 @@ Wilkes for Pd version 0.42.;
 #X text 12 45 DESCRIPTION a grid of toggable cells;
 #X text 12 65 INLET_0 bang - output active column;
 #X text 12 85 INLET_1 int - select active column;
-#X restore 683 396 pd META;
-#X msg 365 163 tgl 1 2;
-#X msg 365 226 off 1 2;
-#X msg 366 192 on 1 2;
-#X text 238 142 Messages can toggle cells too;
-#X connect 0 0 5 0;
-#X connect 0 0 26 0;
-#X connect 1 0 9 0;
-#X connect 1 0 0 1;
-#X connect 2 0 0 0;
-#X connect 2 1 1 0;
-#X connect 3 0 7 0;
-#X connect 4 0 1 0;
-#X connect 5 0 18 0;
-#X connect 5 1 18 0;
-#X connect 5 2 18 0;
-#X connect 5 3 18 0;
-#X connect 5 4 18 0;
-#X connect 5 5 18 0;
-#X connect 5 6 18 0;
-#X connect 5 7 18 0;
-#X connect 5 8 18 0;
-#X connect 5 9 18 0;
-#X connect 5 10 18 0;
-#X connect 5 11 18 0;
-#X connect 5 12 18 0;
-#X connect 5 13 18 0;
-#X connect 5 14 18 0;
-#X connect 5 15 18 0;
-#X connect 7 0 2 0;
-#X connect 8 0 6 0;
-#X connect 8 1 6 1;
+#X restore 652 101 pd META;
+#N canvas 2 70 1916 1008 arguments 0;
+#X obj 68 244 tglgrid 2 3 0t0t00 25 5 #ac0000 #D9D9D9;
+#X text 138 246 <- tglgrid 2 3 0x0x00 25 5 #AC0000 #D9D9D9;
+#X text 50 72 [# of columns] [# of rows] [toggled string] [cell size]
+[cell spacing] [toggled fill color] [untoggled fill color];
+#X text 52 107 Default size is 16x16 \, cell size 20 and spacing 2
+;
+#X text 52 130 The toggled string is a sequence of 0s for off cells
+and any other character for on cells (use a letter otherwise pd will
+think you're typing a number). The second character is the cell in
+the first column second row and so on.;
+#X text 51 54 Argument list is as follows:;
+#X text 52 185 Colors should be specified in #XXXXXX form.;
+#X obj 16 26 cnv 15 100 20 empty empty Arguments 20 12 0 16 -262144
+-13330 0;
+#X restore 399 64 pd arguments;
+#X text 248 64 Details about arguments:;
+#X text 180 27 Right click for properties such as color \, cellsize
+\, and cell spacing;
+#N canvas 2 70 1916 1008 messages 0;
+#X obj 580 94 tglgrid 3 3 x0x000000 20 2 #109090 #FFFFFF;
+#X obj 9 12 cnv 15 100 20 empty empty Messages 20 12 0 16 -262144 -13330
+0;
+#X text 35 38 The following messages are supported \; \; tgl col row:
+toggle the state of a cell \; \; on col row: toggle a cell to on \;
+\; off col row: toggle a cell to off \; \; say col row: output a 1
+at second outlet if specified cell is on \, otherwise output a 0 at
+second outlet \; \; csay col: output specified column on first outlet
+\; \; rsay row: output specified row on first outlet \; \; size columns
+rows: resize the grid to specified dimentions. Existing cells will
+maintain their toggled state \, new cells will be untoggled \;;
+#X floatatom 708 223 5 0 0 0 - - -;
+#X obj 516 222 print tglgrid-help;
+#X msg 709 55 size 4 5;
+#X msg 709 78 size 3 3;
+#X msg 467 77 say 0 2;
+#X msg 490 48 tgl 0 2;
+#X msg 539 18 on 0 2;
+#X msg 567 42 off 0 2;
+#X msg 648 23 csay 0;
+#X msg 643 57 rsay 2;
+#X connect 0 0 4 0;
+#X connect 0 1 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 0 0;
+#X connect 7 0 0 0;
+#X connect 8 0 0 0;
+#X connect 9 0 0 0;
+#X connect 10 0 0 0;
+#X connect 11 0 0 0;
+#X connect 12 0 0 0;
+#X restore 399 89 pd messages;
+#X text 176 89 Messages that can be sent to a grid:;
+#X obj -275 143 cnv 15 1000 730 empty empty empty 20 12 0 14 -241300
+-66577 0;
+#X obj -101 359 tglgrid 16 16 000000000000x00x00000000000x000000000000xx00x0000000000000x000000000000x00000000000x00x00000000000000000x0x0000000000000x000000000x00x00000000000000000x00000000000x00x0000000000000x00xx000000000000x00x0000000000000x00x00000000000000x00x000000000000000x0000
+20 2 #1b3090 #e8e84c;
+#X obj 246 301 count 16;
+#X obj -101 284 t b b;
+#X obj -101 216 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1
+0 1;
+#X msg 246 273 reset;
+#X obj -101 755 unpack f f f f f f f f f f f f f f f f;
+#X obj -101 847 noteout 1;
+#X obj -101 250 metro 500;
+#X obj -101 814 makenote 64 500;
+#X obj -91 318 hsl 330 20 0 15 0 0 empty empty empty -2 -8 0 10 -228856
+-258113 -1 0 1;
+#X obj 354 540 loadbang;
+#X text 413 538 C minor pentatonic;
+#X text 376 645 C pentatonic;
+#X obj 354 635 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 354 516 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X msg 354 564 \; _tglgrid_pitches 0 36 39 41 43 46 48 51 53 55 58
+60 63 65 67 70 72;
+#X msg 354 663 \; _tglgrid_pitches 0 36 38 40 43 45 48 50 52 55 57
+60 62 64 67 69 72;
+#X obj 61 785 table _tglgrid_pitches;
+#X obj -101 785 tabread _tglgrid_pitches;
+#X text 434 485 Change the playing scale here;
+#X text -267 341 A bang here triggers output for active column;
+#X text 273 354 Here you can select the active column (0-indexed).
+A value less than zero activates column 0 \, and a value greater than
+the number of columns \, the last column;
+#X text 255 353 <-;
+#X obj 101 722 print tglgrid-help;
+#X text -242 720 Output is a list of the selected cells in the active
+column. The bottom-most cell is 0;
+#X obj 353 730 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X text 375 740 A pentatonic;
+#X msg 353 758 \; _tglgrid_pitches 0 33 35 36 40 41 45 47 48 52 53
+57 59 60 64 65 69;
+#X obj 367 144 cnv 15 250 140 empty empty empty 20 12 0 14 -14482 -66577
+0;
+#X text 416 146 An rtglgrid outputs row-wise;
+#X obj 393 157 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 393 247 print rtglgrid-help;
+#X text -238 165 Try connecting pd's midi to your favorite synth and
+then turning on the metro below. Then click some of the cells in the
+tglgrid. You can change the scale played by banging one of the pre-defined
+scales to the right.;
+#X obj 393 187 rtglgrid 2 2 0xx0 20 2 #e0633e #0c8844;
+#X floatatom 448 172 5 0 0 0 - - -;
 #X connect 10 0 15 0;
-#X connect 13 0 16 0;
-#X connect 14 0 10 0;
-#X connect 18 0 8 0;
-#X connect 28 0 30 0;
-#X connect 34 0 21 0;
-#X connect 35 0 21 0;
-#X connect 36 0 21 0;
+#X connect 10 0 33 0;
+#X connect 11 0 19 0;
+#X connect 11 0 10 1;
+#X connect 12 0 10 0;
+#X connect 12 1 11 0;
+#X connect 13 0 17 0;
+#X connect 14 0 11 0;
+#X connect 15 0 28 0;
+#X connect 15 1 28 0;
+#X connect 15 2 28 0;
+#X connect 15 3 28 0;
+#X connect 15 4 28 0;
+#X connect 15 5 28 0;
+#X connect 15 6 28 0;
+#X connect 15 7 28 0;
+#X connect 15 8 28 0;
+#X connect 15 9 28 0;
+#X connect 15 10 28 0;
+#X connect 15 11 28 0;
+#X connect 15 12 28 0;
+#X connect 15 13 28 0;
+#X connect 15 14 28 0;
+#X connect 15 15 28 0;
+#X connect 17 0 12 0;
+#X connect 18 0 16 0;
+#X connect 18 1 16 1;
+#X connect 20 0 25 0;
+#X connect 23 0 26 0;
+#X connect 24 0 20 0;
+#X connect 28 0 18 0;
+#X connect 35 0 37 0;
+#X connect 40 0 43 0;
+#X connect 43 0 41 0;
+#X connect 44 0 43 1;
 #X coords 0 10080 1 10070 85 60 0;

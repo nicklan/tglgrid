@@ -214,10 +214,14 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
 
   tocheck = argc;
   while (tocheck > 0) {
+    if (tocheck == 3) {
+      // we check this elsewhere
+      tocheck--;
+      continue;
+    }
     t_atomtype target =
       tocheck==1?A_FLOAT: // cols
       tocheck==2?A_FLOAT: // rows
-      tocheck==3?A_SYMBOL: // toggled
       tocheck==4?A_FLOAT: // cell_size
       tocheck==5?A_FLOAT: // spacing
       tocheck==6?A_SYMBOL: // toggled fill
@@ -245,7 +249,18 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
 
   tg->toggled = (char*)getbytes(sizeof(char)*tg->rows*tg->cols);
   if (argc > 2) {
-    int len = strlen(argv[2].a_w.w_symbol->s_name);
+    int len;
+    char def = '0';
+    if (argv[2].a_type == A_SYMBOL)
+      len = strlen(argv[2].a_w.w_symbol->s_name);
+    else if (argv[2].a_type == A_FLOAT) {
+      len = 0;
+      if (argv[2].a_w.w_float != 0)
+        def = 'x';
+    } else {
+      error("tglgrid: invalid type passed for tglstate (must be symbol or float)");
+      return NULL;
+    }
     if (len != 0 && len != (tg->rows*tg->cols)) {
       error("tglgrid: invalid toggled state passed, defaulting to all un-toggeled");
       len = 0;
@@ -253,7 +268,7 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
     if (len != 0)
       strcpy(tg->toggled,argv[2].a_w.w_symbol->s_name);
     else
-      for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
+      for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]=def;
   } else for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
 
   tg->name = s;

@@ -27,8 +27,11 @@ Right now this has only been tested on linux.  I would appreciate any
 reports about success and/or failure of running this in other
 environments.
 
-It's probably easier to just look at these screenshots:
+It's probably easier to just look at these screenshots.
+
+Some Grids:
 ![tglgrid screenshot](https://github.com/nicklan/tglgrid/raw/master/screenshot/tglgrid.png)
+The help dialog:
 ![tglgrid screenshot](https://github.com/nicklan/tglgrid/raw/master/screenshot/help.png)
 
 The included help patch should explain things thoroughly as well.

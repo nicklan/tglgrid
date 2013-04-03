@@ -256,7 +256,7 @@ static void *tg_new(t_symbol *s, int argc, t_atom *argv) {
       for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
   } else for (i = 0;i<(tg->rows*tg->cols);i++) tg->toggled[i]='0';
 
-  tg->name = gensym("tglgrid");
+  tg->name = s;
   tg->glist = (t_glist *)canvas_getcurrent();
 
   floatinlet_new(&tg->x_obj, &tg->outputcol);
